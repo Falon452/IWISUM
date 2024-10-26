@@ -31,6 +31,7 @@ def print_results(labels, predictions):
     print("F1-score = {0:.2}".format(f1))
 
     print("Confusion matrix")
+    print(len(labels), len(predictions))
     print(confusion_matrix(labels, predictions))
     print("")
 

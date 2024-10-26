@@ -8,7 +8,7 @@ def reconstruction_errors(inputs: np.ndarray, reconstructions: np.ndarray) -> np
     :param reconstructions: Numpy array of reconstructions
     :return: Numpy array (1D) of reconstruction errors for each pair of input and its reconstruction
     """
-    pass
+    return np.linalg.norm(inputs - reconstructions, axis=1)
 
 
 def calc_threshold(reconstr_err_nominal: np.ndarray) -> float:
@@ -17,7 +17,7 @@ def calc_threshold(reconstr_err_nominal: np.ndarray) -> float:
     :param reconstr_err_nominal: Numpy array of reconstruction errors for examples drawn from nominal class.
     :return: Anomaly-detection threshold
     """
-    pass
+    return np.percentile(reconstr_err_nominal, 95)
 
 
 def detect(reconstr_err_all: np.ndarray, threshold: float) -> list:
@@ -27,4 +27,5 @@ def detect(reconstr_err_all: np.ndarray, threshold: float) -> list:
     :param threshold: Anomaly-detection threshold
     :return: list of 0/1 values
     """
-    pass
+    anomalies = np.where(reconstr_err_all > threshold, 1, 0)
+    return anomalies.tolist()

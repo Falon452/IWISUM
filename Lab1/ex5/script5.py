@@ -5,36 +5,34 @@ Based on: https://blog.keras.io/building-autoencoders-in-keras.html
 import keras
 from keras import layers
 
+
 # this is the size of our encoded representations
-encoding_dim = 32  # 32 floats -> compression of factor 24.5, assuming the input is 784 floats
+encoding_dim = 64  # Liczba neuronów w warstwie ukrytej
 
 # this is our input placeholder
 input_img = keras.Input(shape=(784,))
+
+# Warstwy kodujące
+hidden_layer_1 = layers.Dense(128, activation='relu')(input_img)  # Pierwsza warstwa
 # "encoded" is the encoded representation of the input
-# aka "latent" layer
-# aka "hidden" layer
-# aka "code"
-encoded = layers.Dense(encoding_dim, activation='relu')(input_img)
-# "decoded" is the lossy reconstruction of the input
-decoded = layers.Dense(784, activation='sigmoid')(encoded)
+encoded = layers.Dense(encoding_dim, activation='relu')(hidden_layer_1)  # Warstwa ukryta
+
+# Warstwy dekodujące
+decoded_hidden_1 = layers.Dense(64, activation='relu')(encoded)  # Warstwa odpowiadająca drugiej warstwie kodującej# "decoded" is the lossy reconstruction of the input
+decoded = layers.Dense(784, activation='sigmoid')(decoded_hidden_1)  # Warstwa wyjściowa
 
 # this model maps an input to its reconstruction
 autoencoder = keras.Model(input_img, decoded)
 
 # Let's also create a separate encoder model:
-
-# this model maps an input to its encoded representation
 encoder = keras.Model(input_img, encoded)
 
-# As well as the decoder model:
-
-# create a placeholder for an encoded (32-dimensional) input
+# create a placeholder for an encoded (64-dimensional) input
 encoded_input = keras.Input(shape=(encoding_dim,))
-# retrieve the last layer of the autoencoder model
-decoder_layer = autoencoder.layers[-1]
 # create the decoder model
-decoder = keras.Model(encoded_input, decoder_layer(encoded_input))
-
+decoder_layer = autoencoder.layers[-1]
+decoded_output = decoder_layer(encoded_input)
+decoder = keras.Model(encoded_input, decoded_output)
 # Now let 's train our autoencoder to reconstruct MNIST digits.
 #
 # First, we 'll configure our model to use a per-pixel binary crossentropy loss, and the Adadelta optimizer:
@@ -55,6 +53,7 @@ x_train = x_train.astype('float32') / 255.
 x_test = x_test.astype('float32') / 255.
 x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
 x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))
+print('x_test shape:', x_test.shape)
 
 # Now let's train our autoencoder for 50 epochs:
 autoencoder.fit(x_train, x_train,
@@ -91,6 +90,7 @@ from ex5.solution5 import reconstruction_errors, detect, calc_threshold
 from utils import print_results
 
 reconstruction_errors_mnist = reconstruction_errors(x_test, decoded_imgs)
+
 reconstruction_errors_fashion = reconstruction_errors(x_test_fashion, decoded_imgs_fashion)
 
 labels = np.hstack((
@@ -103,6 +103,7 @@ reconstruction_errors_all = np.hstack((reconstruction_errors_mnist,
 
 threshold = calc_threshold(reconstruction_errors_mnist)
 predictions = detect(reconstruction_errors_all, threshold)
+
 print_results(labels, predictions)
 
 import matplotlib.pyplot as plt
@@ -140,7 +141,7 @@ for i in range(n - 1):
     ax.get_yaxis().set_visible(False)
 
 # plot error histograms
-hist_bins = np.linspace(0, .5, 100)
+hist_bins = np.linspace(0, 10, 100)
 ax = plt.subplot2grid((4, n), (0, n - 2),
                       colspan=4,
                       rowspan=2)
